@@ -11,10 +11,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// pullCmd represents the pull command
-var pullCmd = &cobra.Command{
-	Use:   "pull",
-	Short: "Pull repositories from source",
+// syncCmd represents the sync command
+var syncCmd = &cobra.Command{
+	Use:   "sync",
+	Short: "Sync repositories from source to targets",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		config, err := config.Load(configPath)
 		if err != nil {
@@ -22,12 +22,12 @@ var pullCmd = &cobra.Command{
 		}
 		fmt.Printf("%+v\n", config)
 
-		_, err = worker.Pull(config)
+		err = worker.Sync(config)
 
 		return err
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(pullCmd)
+	rootCmd.AddCommand(syncCmd)
 }

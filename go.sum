@@ -1,3 +1,5 @@
+gitea.com/gitea/go-sdk v0.16.0 h1:+RMe47IkCPVtlzfGjfpEt/XeECl5mjuwvP8bPsMrMHc=
+gitea.com/gitea/go-sdk v0.16.0/go.mod h1:r9S7LXuEumOEDhkZ9qHLhHSnTO6XNnKiBEbunPJJY+8=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/ProtonMail/go-crypto v1.4.1 h1:9RfcZHqEQUvP8RzecWEUafnZVtEvrBVL9BiF67IQOfM=
