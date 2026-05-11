@@ -18,14 +18,22 @@ func Push(cfg *config.Config, repos []model.Repo) error {
 	for _, t := range cfg.Targets {
 		fmt.Printf("[+] Target %v\n", t.Type)
 
-		target, err := target.New(t)
+		pushTarget, err := target.New(t)
 		if err != nil {
 			return fmt.Errorf("target %q: %w", t.Type, err)
 		}
 
 		for _, repo := range repos {
 			fmt.Printf("- Uploading %v\n", repo.Name)
-			target.CreateRepoIfDoesntExist(repo.Name)
+
+			url, err := pushTarget.CreateRepoIfDoesntExist(&repo)
+			if err != nil {
+				return fmt.Errorf("creating %q on %s: %w", repo.Name, t.Type, err)
+			}
+
+			if err := pushTarget.PushRepo(&repo, url); err != nil {
+				return err
+			}
 		}
 
 	}

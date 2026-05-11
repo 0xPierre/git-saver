@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/0xPierre/git-saver/internal/gitops"
 	"github.com/0xPierre/git-saver/internal/model"
-	"github.com/go-git/go-git/v6"
-	"github.com/go-git/go-git/v6/plumbing/client"
-	"github.com/go-git/go-git/v6/plumbing/transport/http"
 	"github.com/google/go-github/v85/github"
 )
 
@@ -30,7 +28,6 @@ func (s *githubSource) ListRepos() ([]model.Repo, error) {
 
 	opts := &github.RepositoryListByAuthenticatedUserOptions{ListOptions: github.ListOptions{PerPage: 100}}
 
-	// for loop to iterate overage pages
 	for {
 		repos, resp, err := s.client.Repositories.ListByAuthenticatedUser(context.Background(), opts)
 		if err != nil {
@@ -56,20 +53,17 @@ func (s *githubSource) ListRepos() ([]model.Repo, error) {
 	return allRepo, nil
 }
 
-func (s *githubSource) CloneOrUpdate(cloneUrl string, dest string) error {
-	if _, err := os.Stat(dest); os.IsNotExist(err) {
-		_, err = git.PlainClone(dest, &git.CloneOptions{
-			URL:    cloneUrl,
-			Mirror: true,
-			ClientOptions: []client.Option{
-				client.WithHTTPAuth(&http.BasicAuth{
-					Username: "oauth2",
-					Password: s.token,
-				}),
-			},
-		})
-		return err
-	}
+func (s *githubSource) auth() gitops.Auth {
+	return gitops.Auth{Username: "oauth2", Password: s.token}
+}
 
-	return nil
+func (s *githubSource) CloneOrUpdate(cloneUrl string, dest string) error {
+	_, err := os.Stat(dest)
+	if os.IsNotExist(err) {
+		return gitops.MirrorClone(cloneUrl, dest, s.auth())
+	}
+	if err != nil {
+		return fmt.Errorf("stat %q: %w", dest, err)
+	}
+	return gitops.MirrorFetch(dest, s.auth())
 }

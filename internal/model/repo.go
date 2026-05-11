@@ -6,5 +6,5 @@ type Repo struct {
 	CloneURL    string
 	Private     bool
 	Source      string
-	localPath   string
+	LocalPath   string
 }

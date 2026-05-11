@@ -66,6 +66,7 @@ func Pull(cfg *config.Config) ([]model.Repo, error) {
 
 			dest := cfg.DefaultPullDirectory + "/" + s.Type + "/" + repo.Name
 			src.CloneOrUpdate(repo.CloneURL, dest)
+			repo.LocalPath = dest
 
 			allRepos = append(allRepos, repo)
 		}

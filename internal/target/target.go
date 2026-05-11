@@ -8,14 +8,16 @@ import (
 )
 
 type Target interface {
-	CreateRepoIfDoesntExist(name string) ([]model.Repo, error)
-	PushRepo(repo model.Repo) error
+	CreateRepoIfDoesntExist(repo *model.Repo) (string, error)
+	PushRepo(repo *model.Repo, remoteURL string) error
 }
 
 func New(t config.Target) (Target, error) {
 	switch t.Type {
 	case "gitea":
-		return newGitea(t.Token), nil
+		return newGitea(t.Token, t.URL), nil
+	case "gitlab":
+		return newGitlab(t.Token, t.URL), nil
 	default:
 		return nil, fmt.Errorf("unknow source type %q", t.Type)
 	}
