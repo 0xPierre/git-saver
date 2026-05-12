@@ -3,10 +3,12 @@ package worker
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/0xPierre/git-saver/internal/config"
 	"github.com/0xPierre/git-saver/internal/model"
 	"github.com/0xPierre/git-saver/internal/source"
+	"golang.org/x/sync/errgroup"
 )
 
 // filterRepositories filters the full repo list down to only the ones listed
@@ -38,7 +40,10 @@ func filterRepositories(repos []model.Repo, cfg *config.Config) []model.Repo {
 func Pull(cfg *config.Config) ([]model.Repo, error) {
 	fmt.Printf("Pulling...\n")
 
-	var allRepos []model.Repo
+	var (
+		allRepos []model.Repo
+		mu       sync.Mutex
+	)
 
 	for _, s := range cfg.Sources {
 		fmt.Printf("[+] Source: %v\n", s.Type)
@@ -60,17 +65,31 @@ func Pull(cfg *config.Config) ([]model.Repo, error) {
 		}
 		fmt.Printf("[+] %d repos: %s\n", len(filteredRepos), strings.Join(names, ", "))
 
+		g := new(errgroup.Group)
+		g.SetLimit(10)
+
 		// Cloning repos in default-pull-directory
 		for _, repo := range filteredRepos {
-			fmt.Printf("- Cloning %v\n", repo.Name)
+			g.Go(func() error {
+				fmt.Printf("- Cloning %v\n", repo.Name)
 
-			dest := cfg.DefaultPullDirectory + "/" + s.Type + "/" + repo.Name
-			src.CloneOrUpdate(repo.CloneURL, dest)
-			repo.LocalPath = dest
+				dest := cfg.DefaultPullDirectory + "/" + s.Type + "/" + repo.Name
+				if err := src.CloneOrUpdate(repo.CloneURL, dest); err != nil {
+					return err
+				}
+				repo.LocalPath = dest
 
-			allRepos = append(allRepos, repo)
+				mu.Lock()
+				allRepos = append(allRepos, repo)
+				mu.Unlock()
+
+				return nil
+			})
 		}
 
+		if err := g.Wait(); err != nil {
+			return nil, err
+		}
 	}
 
 	return allRepos, nil

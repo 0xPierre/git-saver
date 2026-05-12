@@ -79,9 +79,9 @@ func (t *gitlabTarget) CreateRepoIfDoesntExist(repo *model.Repo) (string, error)
 	}
 
 	project, _, err = t.client.Projects.CreateProject(&gitlab.CreateProjectOptions{
-		Name:        gitlab.Ptr(repo.Name),
-		Path:        gitlab.Ptr(slug),
-		Description: gitlab.Ptr(repo.Description),
+		Name:        &repo.Name,
+		Path:        &slug,
+		Description: &repo.Description,
 		Visibility:  &want,
 	})
 	if err != nil {
